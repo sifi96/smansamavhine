@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SMANSALS</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Roboto', sans-serif;
+    color: #fff;
+    min-height: 100vh;
+    position: relative;
+  }
+
+  /* LOADING OVERLAY */
+  .loader-backdrop{
+    position:fixed; inset:0; display:grid; place-items:center;
+    background: radial-gradient(circle at 30% 30%, rgba(34,197,94,.15), transparent 60%),
+                radial-gradient(circle at 70% 70%, rgba(6,182,212,.15), transparent 60%),
+                radial-gradient(circle at 50% 50%, rgba(168,85,247,.15), transparent 60%),
+                #0b0f14;
+    z-index:9999;
+    transition:opacity .5s ease, visibility .5s ease;
+  }
+  .loader-hidden{opacity:0; visibility:hidden; pointer-events:none}
+  .loader{
+    width:120px; height:120px; position:relative; display:grid; place-items:center;
+  }
+  .ring{
+    position:absolute; inset:0; border-radius:50%; padding:6px;
+    /* Warna horizontal sweep */
+    background:linear-gradient(90deg, #22c55e, #06b6d4, #a855f7, #f59e0b, #22c55e);
+    background-size: 300% 100%;
+    animation: sweep 2s linear infinite;
+    -webkit-mask: radial-gradient(farthest-side, #0000 55%, #000 56%);
+            mask: radial-gradient(farthest-side, #0000 55%, #000 56%);
+  }
+  .ring2{ inset:10px; animation-duration: 2.5s; opacity:.85 }
+  .ring3{ inset:20px; animation-duration: 3.5s; opacity:.7 }
+  .dot{
+    width:22px; height:22px; border-radius:50%; background: white; opacity:.95;
+    animation: ping 1s ease-in-out infinite alternate;
+  }
+  .label{margin-top:18px; font-weight:600; color:#ccc; text-align:center; letter-spacing:.3px}
+  @keyframes sweep{ 
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+  }
+  @keyframes ping{ from{ transform: scale(.85) } to{ transform: scale(1.05) } }
+
+  /* Slideshow Background */
+  .bg-slideshow {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: -1;
+  }
+  .bg-slideshow img {
+    position: absolute;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out;
+  }
+  .bg-slideshow img.active { opacity: 1; }
+
+  nav {
+    background-color: rgba(30, 144, 255, 0.9);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+  }
+  .nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 60px;
+    position: relative;
+  }
+  .logo-container { display: flex; align-items: center; gap: 10px; }
+  .logo { font-size: 1.4em; font-weight: 700; color: white; white-space: nowrap; }
+  ul.menu { list-style: none; display: flex; }
+  ul.menu li { margin-left: 20px; }
+  ul.menu li a {
+    text-decoration: none;
+    color: white;
+    font-weight: 500;
+    padding: 10px 15px;
+    border-radius: 4px;
+    transition: background-color 0.3s, transform 0.2s;
+  }
+  ul.menu li a:hover { background-color: #63b3ed; transform: translateY(-2px); }
+  .menu-toggle { display: none; cursor: pointer; font-size: 26px; color: white; background: none; border: none; }
+
+  /* Konten */
+  .content {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 20px;
+    background-color: rgba(255,255,255,0.85);
+    border-radius: 8px;
+    color: #333;
+    text-align: center;
+  }
+  .content h1 { font-size: 2em; }
+  .content p { font-size: 1.1em; }
+
+  /* Search Box */
+  .search-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+  }
+  .search-box {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .search-box select, .search-box input, .search-box button {
+    padding: 10px;
+    font-size: 1em;
+    border-radius: 5px;
+    border: none;
+  }
+  .search-box input {
+    width: 250px;
+    border: 1px solid #ccc;
+  }
+  .search-box button {
+    background-color: #1e90ff;
+    color: white;
+    cursor: pointer;
+  }
+  .search-box button:hover {
+    background-color: #0d6efd;
+  }
+
+  /* AI Buttons */
+  .ai-links {
+    display: flex;
+    gap: 10px;
+  }
+  .ai-btn {
+    text-decoration: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 1em;
+    font-weight: bold;
+    transition: background 0.3s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .ai-btn.chatgpt {
+    background-color: #10a37f;
+    color: white;
+  }
+  .ai-btn:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+
+  /* WA & Chatbot Buttons */
+  .whatsapp-float, .chatbot-float {
+    position: fixed;
+    width: 55px;
+    height: 55px;
+    bottom: 20px;
+    right: 20px;
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    font-size: 26px;
+    box-shadow: 2px 2px 3px #999;
+    z-index: 1001;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: transform 0.2s;
+    text-decoration: none;
+  }
+  .whatsapp-float { bottom: 80px; background-color: #25d366; }
+  .chatbot-float { background-color: #ff9800; }
+  .whatsapp-float:hover, .chatbot-float:hover { transform: scale(1.1); }
+
+  /* Responsif */
+  @media(max-width: 768px) {
+    .logo { font-size: 1.1em; }
+    .menu-toggle { display: block; }
+    .menu {
+      position: absolute;
+      top: 60px;
+      right: 0;
+      background-color: #1e90ff;
+      flex-direction: column;
+      width: 200px;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .menu.show { max-height: 300px; }
+    .menu li { margin: 0; border-bottom: 1px solid rgba(255,255,255,0.2); }
+    .menu li a { display: block; }
+    .content { margin: 20px; padding: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="app-loader" class="loader-backdrop">
+  <div class="loader">
+    <div class="ring"></div>
+    <div class="ring ring2"></div>
+    <div class="ring ring3"></div>
+    <div class="dot"></div>
+  </div>
+  <div class="label">Memuat konten…</div>
+</div>
+
+<!-- Slideshow -->
+<div class="bg-slideshow">
+  <img src="https://picsum.photos/id/1015/1920/1080" class="active">
+  <img src="https://picsum.photos/id/1016/1920/1080">
+  <img src="https://picsum.photos/id/1021/1920/1080">
+  <img src="https://picsum.photos/id/1039/1920/1080">
+</div>
+
+<nav>
+  <div class="nav-container">
+    <div class="logo-container">
+      <div class="logo">DEEP LEARNING</div>
+    </div>
+    <button class="menu-toggle" id="menu-toggle">&#9776;</button>
+    <ul class="menu" id="menu">
+      <li><a href="https://info.gtk.dikdasmen.go.id">INFO GTK</a></li>
+      <li><a href="https://guru.kemdikbud.go.id">RUANG GTK</a></li>
+      <li><a href="https://gtk.belajar.kemendikdasmen.go.id">SIMPKB</a></li>
+      <li><a href="https://m.facebook.com.search.pasifikus">KONTAK</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="content">
+  <h1>SMAN1 LEMBOR SELATAN</h1>
+  <p>SELAMAT DATANG. SALAM HANGAT BUAT KITA SEMUA TUHAN MEMBERKATI.</p>
+  <div class="search-container">
+    <div class="search-box">
+      <select id="search-engine">
+        <option value="https://www.google.com/search?q=">Google</option>
+        <option value="https://www.bing.com/search?q=">Bing (Edge)</option>
+        <option value="https://yandex.com/search/?text=">Yandex</option>
+      </select>
+      <input type="text" id="search-query" placeholder="Ketik kata kunci..." />
+      <button onclick="startSearch()">Cari</button>
+    </div>
+    <div class="ai-links">
+      <a href="https://chat.openai.com" target="_blank" class="ai-btn chatgpt">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg" alt="ChatGPT" style="height:20px;">
+        ChatGPT
+      </a>
+    </div>
+  </div>
+</div>
+
+<a href="https://wa.me/6281345164471" class="whatsapp-float" target="_blank" title="Hubungi via WhatsApp">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" style="width: 60%; height: 60%;">
+</a>
+
+<a href="https://absen77.my.canva.site/aplikasi-berdasarkan-script" class="chatbot-float" target="_blank" title="Buka Chatbot">
+  🤖
+</a>
+
+<script>
+  const menuToggle = document.getElementById('menu-toggle');
+  const menu = document.getElementById('menu');
+  menuToggle.addEventListener('click', () => menu.classList.toggle('show'));
+  document.addEventListener('click', (e) => {
+    if (!menu.contains(e.target) && !menuToggle.contains(e.target)) menu.classList.remove('show');
+  });
+  document.querySelectorAll('.menu a').forEach(link => {
+    link.addEventListener('click', () => menu.classList.remove('show'));
+  });
+
+  // Slideshow
+  const slides = document.querySelectorAll('.bg-slideshow img');
+  let index = 0;
+  setInterval(() => {
+    slides[index].classList.remove('active');
+    index = (index + 1) % slides.length;
+    slides[index].classList.add('active');
+  }, 5000);
+
+  // Search
+  function startSearch() {
+    const engine = document.getElementById('search-engine').value;
+    const query = document.getElementById('search-query').value.trim();
+    if (query) window.open(engine + encodeURIComponent(query), '_blank');
+  }
+  document.getElementById('search-query').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); startSearch(); }
+  });
+
+  // Loader hide
+  window.addEventListener('load', function(){
+    const overlay = document.getElementById('app-loader');
+    setTimeout(() => {
+      overlay.classList.add('loader-hidden');
+      setTimeout(() => overlay.remove(), 600);
+    }, 400);
+  });
+</script>
+
+</body>
+</html>
+<style>
+  /* LOADING OVERLAY */
+  .loader-backdrop{
+    position:fixed; inset:0; display:grid; place-items:center;
+    background: radial-gradient(circle at 30% 30%, rgba(34,197,94,.15), transparent 60%),
+                radial-gradient(circle at 70% 70%, rgba(6,182,212,.15), transparent 60%),
+                radial-gradient(circle at 50% 50%, rgba(168,85,247,.15), transparent 60%),
+                #0b0f14;
+    z-index:9999;
+    transition:opacity .5s ease, visibility .5s ease;
+  }
+  .loader-hidden{opacity:0; visibility:hidden; pointer-events:none}
+  .loader{
+    width:120px; height:120px; position:relative; display:grid; place-items:center;
+  }
+  .ring{
+    position:absolute; inset:0; border-radius:50%; padding:6px;
+    background:linear-gradient(90deg,
+      rgba(34,197,94,0.2) 0%,
+      rgba(6,182,212,0.4) 25%,
+      rgba(168,85,247,0.6) 50%,
+      rgba(6,182,212,0.4) 75%,
+      rgba(34,197,94,0.2) 100%);
+    background-size: 200% 100%;
+    animation: sweepSoft 2.5s ease-in-out infinite;
+    -webkit-mask: radial-gradient(farthest-side, #0000 55%, #000 56%);
+            mask: radial-gradient(farthest-side, #0000 55%, #000 56%);
+    filter: blur(1px);
+  }
+  .ring2{ inset:10px; animation-duration: 3.2s; opacity:.85 }
+  .ring3{ inset:20px; animation-duration: 4.1s; opacity:.7 }
+  .dot{
+    width:22px; height:22px; border-radius:50%; background: white; opacity:.95;
+    animation: ping 1s ease-in-out infinite alternate;
+    box-shadow: 0 0 15px rgba(255,255,255,0.7);
+  }
+  .label{margin-top:18px; font-weight:600; color:#ccc; text-align:center; letter-spacing:.3px}
+  @keyframes sweepSoft{ 
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  @keyframes ping{ from{ transform: scale(.85) } to{ transform: scale(1.05) } }
+</style>
